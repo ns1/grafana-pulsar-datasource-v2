@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "NS1 Pulsar Metrics",
+  "id": "ns1-pulsar-datasource-v2",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_ns1_pulsar_metrics",
+  "info": {
+    "description": "A simple and easy way to visualize Pulsar RUM metrics",
+    "author": {
+      "name": "NS1 Labs",
+      "url": "https://ns1.com/labs"
+    },
+    "keywords": [
+      "ns1",
+      "pulsar",
+      "rum",
+      "dns",
+      "cdn"
+    ],
+    "logos": {
+      "small": "img/logo.png",
+      "large": "img/logo.png"
+    },
+       "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/ns1labs/grafana-pulsar-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/ns1labs/grafana-pulsar-datasource/blob/main/LICENSE"
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "Configuration Screen",
+        "path": "img/pulsar-plugin-cfg.png"
+      },
+      {
+        "name": "Confirmation Screen",
+        "path": "img/datasource-correct.png"
+      },
+      {
+        "name": "Pulsar Query Editor",
+        "path": "img/pulsar-query-editor.png"
+      },
+      {
+        "name": "Query Editor Example",
+        "path": "img/query-editor-example.png"
+      }
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=10.4.0",
+    "plugins": []
+  }
+}
