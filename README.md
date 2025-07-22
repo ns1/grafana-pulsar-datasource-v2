@@ -1,165 +1,94 @@
-# Default build configuration by Grafana
+# NS1 Pulsar Metrics Datasource Plugin
 
-**This is an auto-generated directory and is not intended to be changed! ⚠️**
+The objective of the Plugin is to make it easier for Pulsar customers to query
+the NS1 API for Performance and Availability data of their pulsar Applications and
+Jobs.
 
-The `.config/` directory holds basic configuration for the different tools
-that are used to develop, test and build the project. In order to make it updates easier we ask you to
-not edit files in this folder to extend configuration.
+This is a backend datasource plugin, and it uses the public open source NS1 API library for
+GoLang. You can find the library [here](https://github.com/ns1/ns1-go)
 
-## How to extend the basic configs?
+This is a work in progress, and currently querying Performance and Availability data
+are supported.
 
-Bear in mind that you are doing it at your own risk, and that extending any of the basic configuration can lead
-to issues around working with the project.
+## Installation and Build
 
-### Extending the ESLint config
+As of now this plugin must be installed as a _local plugin_. We are working on having
+the plugin published in Grafana's open source plugin catalog.
 
-Edit the `.eslintrc` file in the project root in order to extend the ESLint configuration.
+You need to download this repository as zip or clone it.
+Unzip the file and follow the instructions on [Install Plugin](https://grafana.com/docs/grafana/latest/plugins/installation/#install-plugin-on-local-grafana)
+As of now the plugin is unsigned, and therefore you will have to enable the loading
+of unsigned plugins on your Grafana instance. [More details](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#allow_loading_unsigned_plugins)
 
-**Example:**
 
-```json
-{
-  "extends": "./.config/.eslintrc",
-  "rules": {
-    "react/prop-types": "off"
-  }
-}
+Steps for unsigned grafana plugin : 
+Prerequisite: Need to have mage, yarn or npm installed
+
+- Download the plugin from the repository.
+- Unzip file and move grafana-pulsar-datasource-v2 folder in `/var/lib/grafana/plugins/`
+- build backend
+```bash
+mage -v buildAll
+```
+- build frontend
+```bash
+yarn install
+yarn build
+```
+OR
+```bash
+npm install
+npm run build
+```
+- Edit grafana.ini configuration file (commonly at `/etc/grafana/grafana.ini`)
+```bash
+[plugins]
+allow_loading_unsigned_plugins = ns1-pulsar-datasource-v2
+[plugin.ns1-pulsar-datasource-v2]
+allow_local_mode = true
 ```
 
----
+If something goes wrong when building the frontend, try to delete the _node_modules_ and the _yarn.lock_ file: `rm -rf node_modules yarn.lock`. Then repeat the commands (yarn install, yarn build).
 
-### Extending the Prettier config
+Restart grafana if needed.
 
-Edit the `.prettierrc.js` file in the project root in order to extend the Prettier configuration.
+## Configuration
 
-**Example:**
+The configuration screen will only ask for a valid NS1 API key. This key will be
+used to query the NS1 API. Also, the key will be stored securely by Grafana in local
+storage.
 
-```javascript
-module.exports = {
-  // Prettier configuration provided by Grafana scaffolding
-  ...require('./.config/.prettierrc.js'),
+![Configuration Screen](https://raw.githubusercontent.com/ns1labs/grafana-pulsar-datasource/main/src/img/pulsar-plugin-cfg.png)
 
-  semi: false,
-};
-```
+Once you enter your API Key, click on the `Save and Test` button. The Plugin will
+verify your Key against the NS1 API.
 
----
+![Confirmation Screen](https://raw.githubusercontent.com/ns1labs/grafana-pulsar-datasource/main/src/img/datasource-correct.png?raw=true)
 
-### Extending the Jest config
+After the key is verified, you can hit the `Back`
+button and continue with your dashboard creation.
 
-There are two configuration in the project root that belong to Jest: `jest-setup.js` and `jest.config.js`.
+## Query Data
 
-**`jest-setup.js`:** A file that is run before each test file in the suite is executed. We are using it to
-set up the Jest DOM for the testing library and to apply some polyfills. ([link to Jest docs](https://jestjs.io/docs/configuration#setupfilesafterenv-array))
+After creating a dashboard, select as Data source `pulsar-datasource`. This will bring
+the Pulsar Query Editor.
 
-**`jest.config.js`:** The main Jest configuration file that extends the Grafana recommended setup. ([link to Jest docs](https://jestjs.io/docs/configuration))
+![Pulsar Query Editor](https://raw.githubusercontent.com/ns1labs/grafana-pulsar-datasource/main/src/img/pulsar-query-editor.png?raw=true)
 
-#### ESM errors with Jest
+It is possible that the first time you use the Pulsar Datasource with the Query Editor
+you may experience a little delay, as the backend is loading the Applications and Jobs.
+Further usage won't show this behavior, as this data will be cached by the Plugin.
 
-A common issue with the current jest config involves importing an npm package that only offers an ESM build. These packages cause jest to error with `SyntaxError: Cannot use import statement outside a module`. To work around this, we provide a list of known packages to pass to the `[transformIgnorePatterns](https://jestjs.io/docs/configuration#transformignorepatterns-arraystring)` jest configuration property. If need be, this can be extended in the following way:
+Once the Query Editor is loaded, you may be able to select a Pulsar App and a Job
+belonging to the App. Next is to select the metric type, Performance (Latency) or
+Availability, and the Aggregation. These are the minimum parameters to get data,
+but be aware that you may need to specify GEO and ASN to have meaningful data.
+If you don't specify at least a GEO code, you will be fetching the global behavior
+of the selected Job, and that may not be optimal.
 
-```javascript
-process.env.TZ = 'UTC';
-const { grafanaESModules, nodeModulesToTransform } = require('./config/jest/utils');
+![Query Editor Example](https://raw.githubusercontent.com/ns1labs/grafana-pulsar-datasource/main/src/img/query-editor-example.png?raw=true)
 
-module.exports = {
-  // Jest configuration provided by Grafana
-  ...require('./.config/jest.config'),
-  // Inform jest to only transform specific node_module packages.
-  transformIgnorePatterns: [nodeModulesToTransform([...grafanaESModules, 'packageName'])],
-};
-```
+You can add as many queries as you want, but you will usually add as many as the
+number of active jobs you have configured.
 
----
-
-### Extending the TypeScript config
-
-Edit the `tsconfig.json` file in the project root in order to extend the TypeScript configuration.
-
-**Example:**
-
-```json
-{
-  "extends": "./.config/tsconfig.json",
-  "compilerOptions": {
-    "preserveConstEnums": true
-  }
-}
-```
-
----
-
-### Extending the Webpack config
-
-Follow these steps to extend the basic Webpack configuration that lives under `.config/`:
-
-#### 1. Create a new Webpack configuration file
-
-Create a new config file that is going to extend the basic one provided by Grafana.
-It can live in the project root, e.g. `webpack.config.ts`.
-
-#### 2. Merge the basic config provided by Grafana and your custom setup
-
-We are going to use [`webpack-merge`](https://github.com/survivejs/webpack-merge) for this.
-
-```typescript
-// webpack.config.ts
-import type { Configuration } from 'webpack';
-import { merge } from 'webpack-merge';
-import grafanaConfig, { type Env } from './.config/webpack/webpack.config';
-
-const config = async (env: Env): Promise<Configuration> => {
-  const baseConfig = await grafanaConfig(env);
-
-  return merge(baseConfig, {
-    // Add custom config here...
-    output: {
-      asyncChunks: true,
-    },
-  });
-};
-
-export default config;
-```
-
-#### 3. Update the `package.json` to use the new Webpack config
-
-We need to update the `scripts` in the `package.json` to use the extended Webpack configuration.
-
-**Update for `build`:**
-
-```diff
--"build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
-+"build": "webpack -c ./webpack.config.ts --env production",
-```
-
-**Update for `dev`:**
-
-```diff
--"dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
-+"dev": "webpack -w -c ./webpack.config.ts --env development",
-```
-
-### Configure grafana image to use when running docker
-
-By default, `grafana-enterprise` will be used as the docker image for all docker related commands. If you want to override this behavior, simply alter the `docker-compose.yaml` by adding the following build arg `grafana_image`.
-
-**Example:**
-
-```yaml
-version: '3.7'
-
-services:
-  grafana:
-    extends:
-      file: .config/docker-compose-base.yaml
-      service: grafana
-    build:
-      args:
-        grafana_version: ${GRAFANA_VERSION:-9.1.2}
-        grafana_image: ${GRAFANA_IMAGE:-grafana}
-```
-
-In this example, we assign the environment variable `GRAFANA_IMAGE` to the build arg `grafana_image` with a default value of `grafana`. This will allow you to set the value while running the docker compose commands, which might be convenient in some scenarios.
-
----
+Please report any problems found on the repository issues section.
